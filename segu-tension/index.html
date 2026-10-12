@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>Segu y la Tensión · PrevenLab Arcade</title>
+<meta name="description" content="Juego de PrevenLab Academy: elegí el EPP correcto para trabajar con riesgo eléctrico en BT, MT y AT.">
+<meta property="og:title" content="Segu y la Tensión · PrevenLab Academy">
+<meta property="og:description" content="¿Sabés qué EPP usar en 220 V, 13,2 kV o 132 kV? Jugá y compartí tu puntaje.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;700&family=Barlow:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--g:#101215;--g2:#1b1f24;--g3:#2a3038;--a:#F5A623;--t:#f3f1ec;--m:#9aa3ad;--ok:#3ecf7a;--bad:#ff5a4f}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;background:#07080a;color:var(--t);font-family:Barlow,system-ui,sans-serif;overflow:hidden;touch-action:manipulation;user-select:none}
+#app{position:relative;margin:0 auto;height:100vh;height:100dvh;width:min(100vw,calc(100vh*9/16));background:var(--g);overflow:hidden;display:flex;flex-direction:column}
+@supports (height:100dvh){#app{width:min(100vw,calc(100dvh*9/16))}}
+h1,h2,h3{font-family:Oswald,Impact,sans-serif;text-transform:uppercase;letter-spacing:.02em}
+.hud{display:flex;justify-content:space-between;align-items:center;padding:10px 14px;background:var(--g2);border-bottom:2px solid var(--a);font-family:Oswald,sans-serif;font-size:15px}
+.hud b{color:var(--a)}
+.screen{flex:1;display:none;flex-direction:column;padding:14px;gap:10px;overflow-y:auto;animation:in .25s ease}
+.screen.on{display:flex}
+@keyframes in{from{opacity:.4;transform:translateY(6px)}to{opacity:1;transform:none}}
+.btn{font-family:Oswald,sans-serif;text-transform:uppercase;font-size:19px;border:0;border-radius:12px;padding:13px;background:var(--a);color:var(--g);font-weight:700;cursor:pointer;box-shadow:0 4px 0 #b27410;width:100%;display:block;text-align:center;text-decoration:none}
+.btn:active{transform:translateY(3px);box-shadow:0 1px 0 #b27410}
+.btn.sec{background:var(--g3);color:var(--t);box-shadow:0 4px 0 #000}
+.btn.ig{background:linear-gradient(45deg,#f9a03f,#e1306c,#833ab4);color:#fff;box-shadow:0 4px 0 #5a1f6e}
+.card{background:var(--g2);border-radius:14px;padding:12px 14px;border:1px solid var(--g3)}
+.tag{display:inline-block;font-family:Oswald;font-size:12px;padding:2px 8px;border-radius:20px;background:var(--a);color:var(--g);margin-bottom:4px}
+.danger{background:repeating-linear-gradient(45deg,var(--a) 0 12px,var(--g) 12px 24px);height:10px;border-radius:4px;flex:none}
+.title{font-size:34px;line-height:1;color:var(--a);text-align:center}
+.sub{text-align:center;color:var(--m);font-size:14px}
+.hero{display:flex;justify-content:center}
+.data{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.data div{background:var(--g3);border-radius:10px;padding:8px}
+.data small{display:block;color:var(--m);font-size:11px;text-transform:uppercase}
+.data strong{font-family:Oswald;font-size:16px}
+.opt{display:block;width:100%;text-align:left;background:var(--g2);color:var(--t);border:2px solid var(--g3);border-radius:12px;padding:12px;font:600 15px Barlow;cursor:pointer}
+.opt.ok{border-color:var(--ok);background:#173a27}.opt.bad{border-color:var(--bad);background:#3d1a18}
+.top{display:flex;gap:8px;align-items:center}
+.top .segu{flex:0 0 78px}
+.timer{height:6px;background:var(--g3);border-radius:4px;overflow:hidden;flex:none}
+.timer i{display:block;height:100%;background:var(--a);width:100%;transition:width 1s linear}
+.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+.item{background:var(--g2);border:2px solid var(--g3);border-radius:10px;padding:4px 2px 5px;text-align:center;cursor:pointer;position:relative}
+.item svg{width:100%;height:36px}
+.item p{font-size:10px;line-height:1.1;font-weight:600;min-height:33px}
+.item.sel{border-color:var(--a);background:#2b2414}
+.item.sel:after{content:"✓";position:absolute;top:1px;right:5px;color:var(--a);font-weight:700;font-size:12px}
+.fb li{list-style:none;padding:7px 0;border-bottom:1px solid var(--g3);font-size:14px}
+.fb li:last-child{border:0}
+.fb li b{font-family:Oswald;font-weight:500}
+.big{font-size:52px;text-align:center;color:var(--a);font-family:Oswald;line-height:1}
+.legal{font-size:11px;color:var(--m);text-align:center;line-height:1.3}
+.shake{animation:sh .4s}@keyframes sh{25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
+.spark{animation:zap 1s infinite}@keyframes zap{50%{opacity:.2}}
+.lvls{display:flex;gap:4px;justify-content:center;flex-wrap:wrap}
+.lvls span{font-family:Oswald;font-size:11px;background:var(--g3);border-radius:6px;padding:2px 6px}
+.toast{position:absolute;left:50%;bottom:18px;transform:translateX(-50%);background:var(--a);color:var(--g);font-weight:700;padding:8px 14px;border-radius:10px;font-size:13px;display:none;z-index:9;width:max-content;max-width:90%}
+</style>
+</head>
+<body>
+<div id="app">
+  <div class="hud"><div>PUNTOS <b id="pts">0</b></div><div id="lives"></div><div>RÉCORD <b id="rec">0</b></div></div>
+
+  <section class="screen on" id="sStart">
+    <div class="danger"></div>
+    <div class="hero" id="heroStart"></div>
+    <h1 class="title">Segu y la<br>Tensión</h1>
+    <p class="sub">Riesgo eléctrico · EPP · Decisiones</p>
+    <div class="lvls"><span>220 V</span><span>380 V</span><span>13,2 kV</span><span>33 kV</span><span>132 kV</span></div>
+    <div class="card" style="font-size:15px;line-height:1.35">
+      De baja a alta tensión: leé los <b>datos</b>, tomá la <b>decisión</b> correcta y equipá a Segu con el <b>EPP y los elementos adecuados</b> antes de que se acabe el tiempo.<br><br>Cada error te cuesta una vida. Tenés 3 ⚡
+    </div>
+    <button class="btn" id="bPlay">Jugar</button>
+    <p class="legal">PrevenLab Academy · Contenido educativo. No reemplaza la capacitación ni la habilitación para tareas eléctricas.</p>
+  </section>
+
+  <section class="screen" id="sData">
+    <span class="tag" id="dLevel"></span>
+    <h2 id="dTitle" style="font-size:25px;line-height:1.05"></h2>
+    <div class="hero" id="dScene"></div>
+    <h3 style="font-size:16px;color:var(--a)">Datos a tener en cuenta</h3>
+    <div class="data" id="dData"></div>
+    <button class="btn" id="bData">Continuar</button>
+  </section>
+
+  <section class="screen" id="sQ">
+    <span class="tag">DECISIÓN</span>
+    <h2 id="qText" style="font-size:21px;line-height:1.15"></h2>
+    <div id="qOpts" style="display:flex;flex-direction:column;gap:8px"></div>
+    <div class="card" id="qFb" style="display:none;font-size:14px"></div>
+    <button class="btn" id="bQ" style="display:none">Elegir equipo</button>
+  </section>
+
+  <section class="screen" id="sEpp" style="gap:6px">
+    <div class="top"><div class="segu" id="seguLive"></div>
+      <div style="flex:1"><span class="tag" id="eTag"></span><h3 id="eTitle" style="font-size:16px;line-height:1.1"></h3><p style="font-size:12px;color:var(--m)">Tocá para equipar · <b id="tLeft" style="color:var(--a)"></b> s</p></div></div>
+    <div class="timer"><i id="tBar"></i></div>
+    <div class="grid" id="grid"></div>
+    <button class="btn" id="bCheck">¡Listo, a trabajar!</button>
+  </section>
+
+  <section class="screen" id="sFb">
+    <h2 id="fTitle" style="font-size:28px;text-align:center"></h2>
+    <div class="hero" id="fHero"></div>
+    <ul class="fb card" id="fList"></ul>
+    <div class="card" id="fTip" style="font-size:13.5px;border-color:var(--a)"></div>
+    <button class="btn" id="bFb"></button>
+  </section>
+
+  <section class="screen" id="sEnd">
+    <div class="danger"></div>
+    <h2 id="eEnd" class="title" style="font-size:30px"></h2>
+    <div class="hero" id="endHero"></div>
+    <p class="sub">Puntaje</p><div class="big" id="endPts">0</div>
+    <p class="sub" id="endRec"></p>
+    <button class="btn ig" id="bShare">📸 Compartir puntaje</button>
+    <p class="legal" style="margin-top:-4px">Etiquetá a <b style="color:var(--a)">@prevenlab_ctes_arg</b> en tu historia</p>
+    <button class="btn" id="bAgain">Jugar de nuevo</button>
+    <a class="btn sec" href="https://prevenlab-hys.blogspot.com/" target="_blank" rel="noopener">Más en PrevenLab Academy</a>
+    <p class="legal">Basado en Dec. 351/79 (Anexo VI), Res. SRT 592/04 (trabajos con tensión) y norma IEC 60903 / IRAM de guantes aislantes.</p>
+  </section>
+  <div class="toast" id="toast"></div>
+</div>
+
+<script>
+const GAME_URL='https://hiperfrenetico.github.io/prevenlab-arcade/segu-tension/';
+const IG='@prevenlab_ctes_arg';
+const T=60;
+
+/* ===== Guantes aislantes (IEC 60903): clase, tensión máx. de uso CA, color ===== */
+const GLOVES={g00:['00','500 V','#e8d6b0'],g0:['0','1.000 V','#d93a32'],g1:['1','7.500 V','#f4f4f4'],g2:['2','17.000 V','#f2d21b'],g3:['3','26.500 V','#3cb44b'],g4:['4','36.000 V','#f08a24']};
+const glove=(c,cl)=>`<svg viewBox="0 0 60 50"><path d="M18 46V24l-6-8c-2-3 2-6 4-3l5 6V8c0-3 4-3 4 0v12V5c0-3 4-3 4 0v15V6c0-3 4-3 4 0v14V9c0-3 4-3 4 0v21c0 9-4 16-10 16z" fill="${c}" stroke="#000" stroke-width="1.5"/><rect x="15" y="38" width="24" height="10" rx="2" fill="${c}" stroke="#000" stroke-width="1.5"/><text x="27" y="46.5" font-family="Oswald" font-size="8" text-anchor="middle" fill="#000">${cl}</text></svg>`;
+const ICON={
+ cuero:`<svg viewBox="0 0 60 50"><path d="M16 46V22l-4-6c-2-3 2-6 4-3l4 5V9c0-3 9-3 9 0V7c0-3 9-3 9 0v4c0-3 8-3 8 0v19c0 9-5 16-12 16z" fill="#a0652e" stroke="#000" stroke-width="1.5"/><path d="M20 30h20M20 36h20" stroke="#6b3f17" stroke-width="2"/></svg>`,
+ cascoE:`<svg viewBox="0 0 60 50"><path d="M10 34a20 20 0 0 1 40 0z" fill="#F5C518" stroke="#000" stroke-width="1.5"/><rect x="6" y="33" width="48" height="6" rx="3" fill="#F5C518" stroke="#000" stroke-width="1.5"/><text x="30" y="30" font-family="Oswald" font-size="10" text-anchor="middle" fill="#101215">E</text></svg>`,
+ facial:`<svg viewBox="0 0 60 50"><path d="M12 14a18 12 0 0 1 36 0" fill="#444" stroke="#000" stroke-width="1.5"/><path d="M12 14h36v20c0 8-8 12-18 12s-18-4-18-12z" fill="#7fd0ff" fill-opacity=".55" stroke="#000" stroke-width="1.5"/><path d="M18 20l6 12" stroke="#fff" stroke-width="2" opacity=".7"/></svg>`,
+ anteojos:`<svg viewBox="0 0 60 50"><path d="M4 22h52" stroke="#222" stroke-width="3"/><rect x="8" y="18" width="20" height="14" rx="6" fill="#bfe8ff" stroke="#222" stroke-width="2.5"/><rect x="32" y="18" width="20" height="14" rx="6" fill="#bfe8ff" stroke="#222" stroke-width="2.5"/></svg>`,
+ ignifuga:`<svg viewBox="0 0 60 50"><path d="M20 6l-12 8 4 10 6-3v25h24V21l6 3 4-10-12-8c-2 4-6 6-10 6s-8-2-10-6z" fill="#1d3f73" stroke="#000" stroke-width="1.5"/><path d="M18 30h24M18 36h24" stroke="#cfd6dc" stroke-width="3"/><path d="M30 17c3 3 4 6 0 9-4-3-3-6 0-9z" fill="#F5A623"/></svg>`,
+ sintetica:`<svg viewBox="0 0 60 50"><path d="M20 6l-12 8 4 10 6-3v25h24V21l6 3 4-10-12-8c-2 4-6 6-10 6s-8-2-10-6z" fill="#e2407a" stroke="#000" stroke-width="1.5"/><text x="30" y="36" font-family="Barlow" font-weight="700" font-size="8" text-anchor="middle" fill="#fff">POLIÉSTER</text></svg>`,
+ botinD:`<svg viewBox="0 0 60 50"><path d="M14 8h16v22l18 6c4 1 5 6 2 8H10V12z" fill="#b07a3f" stroke="#000" stroke-width="1.5"/><rect x="9" y="41" width="44" height="6" rx="2" fill="#333" stroke="#000"/><path d="M28 16l-4 6h5l-3 7" stroke="#F5A623" stroke-width="2.5" fill="none"/></svg>`,
+ arnes:`<svg viewBox="0 0 60 50"><path d="M20 4l10 16 10-16M30 20v10M18 30h24l-4 14M22 44l-4-14" stroke="#F5A623" stroke-width="4" fill="none" stroke-linejoin="round"/><circle cx="30" cy="24" r="4" fill="none" stroke="#ccc" stroke-width="2.5"/></svg>`,
+ anillos:`<svg viewBox="0 0 60 50"><rect x="8" y="16" width="20" height="20" rx="5" fill="#ccc" stroke="#000" stroke-width="1.5"/><circle cx="18" cy="26" r="6" fill="#fff" stroke="#000"/><path d="M18 26v-4M18 26h3" stroke="#000"/><circle cx="43" cy="26" r="9" fill="none" stroke="#e6b800" stroke-width="4"/></svg>`,
+ pertiga:`<svg viewBox="0 0 60 50"><path d="M8 46L50 6" stroke="#f2d21b" stroke-width="5" stroke-linecap="round"/><path d="M8 46L22 33" stroke="#d93a32" stroke-width="6" stroke-linecap="round"/><path d="M50 6l4-2M50 6l2 4" stroke="#888" stroke-width="3"/><path d="M27 28l3 3M33 22l3 3M39 16l3 3" stroke="#d93a32" stroke-width="2"/></svg>`,
+ taburete:`<svg viewBox="0 0 60 50"><rect x="8" y="14" width="44" height="8" rx="2" fill="#2f2f2f" stroke="#000"/><path d="M13 22l-3 22M47 22l3 22M22 22l-1 22M38 22l1 22" stroke="#f2d21b" stroke-width="3"/><circle cx="10" cy="45" r="3" fill="#888"/><circle cx="50" cy="45" r="3" fill="#888"/><circle cx="21" cy="45" r="3" fill="#888"/><circle cx="39" cy="45" r="3" fill="#888"/></svg>`,
+ detector:`<svg viewBox="0 0 60 50"><rect x="22" y="4" width="16" height="30" rx="5" fill="#F5A623" stroke="#000" stroke-width="1.5"/><circle cx="30" cy="13" r="4" fill="#d93a32"/><rect x="25" y="20" width="10" height="8" rx="1" fill="#9fe39f"/><path d="M30 34v12" stroke="#333" stroke-width="4"/><path d="M30 46l-3 2h6z" fill="#888"/></svg>`
+};
+const ITEMS={g00:'Guantes clase 00',g0:'Guantes clase 0',g1:'Guantes clase 1',g2:'Guantes clase 2',g3:'Guantes clase 3',g4:'Guantes clase 4',
+ cuero:'Sobreguantes de cuero',cascoE:'Casco dieléctrico',facial:'Protector facial arco',anteojos:'Anteojos de seguridad',
+ ignifuga:'Ropa ignífuga',sintetica:'Ropa sintética',botinD:'Calzado dieléctrico',arnes:'Arnés + cabo posicionam.',
+ pertiga:'Pértiga aislante',taburete:'Taburete aislante',detector:'Detector de tensión',anillos:'Reloj y anillos'};
+Object.entries(GLOVES).forEach(([k,[cl,v,c]])=>{ICON[k]=glove(c,cl);ITEMS[k]+=` (${v})`});
+const GL=Object.keys(GLOVES);
+const lowGloves=(okFrom,txt)=>Object.fromEntries(GL.slice(0,GL.indexOf(okFrom)).map(k=>[k,`Clase ${GLOVES[k][0]} soporta hasta ${GLOVES[k][1]}: ${txt}`]));
+
+/* ===== Tareas ===== */
+const LEVELS=[
+ {title:'Cambiar un tomacorriente',short:'BT · 220 V',scene:'casa',
+  data:[['Tensión','220 V CA'],['Nivel','Baja tensión'],['Lugar','Vivienda'],['Modalidad','Sin tensión']],
+  q:'Antes de tocar los cables, ¿qué hace Segu?',
+  opts:[['Corta, bloquea, verifica ausencia de tensión y señaliza',1],['Baja la térmica y arranca, es solo un toma',0],['Trabaja con cuidado sin cortar, es rápido',0]],
+  qfb:'Siempre que se pueda se trabaja SIN tensión: corte efectivo, bloqueo, verificación de ausencia de tensión, puesta a tierra cuando corresponde y señalización.',
+  req:[['g00','g0'],['anteojos','facial'],['botinD'],['detector']],
+  bad:{anillos:'Reloj y anillos conducen la corriente y pueden causar quemaduras graves.'},
+  note:{g1:'Sobredimensionado: pierde destreza. En 220 V alcanza con clase 00 o 0.',g2:'Sobredimensionado para 220 V.',g3:'Sobredimensionado para 220 V.',g4:'Sobredimensionado para 220 V.',arnes:'No hay trabajo en altura.',pertiga:'No hace falta pértiga en un tomacorriente.'},
+  tip:'Sin detector no hay "verificación de ausencia de tensión": bajar la térmica no garantiza que no haya tensión (puede estar mal rotulada o tener retorno).'},
+ {title:'Medir en un tablero energizado',short:'BT · 380 V',scene:'tablero',
+  data:[['Tensión','380 V CA trifásica'],['Nivel','Baja tensión'],['Estado','Energizado'],['Riesgo','Arco eléctrico']],
+  q:'Al medir con el tablero energizado, ¿qué riesgo extra tiene que cubrir Segu?',
+  opts:[['El arco eléctrico: llamarada, calor y proyecciones',1],['Ninguno, con guantes alcanza',0],['Solo la electricidad estática',0]],
+  qfb:'Un cortocircuito en un tablero genera un arco: calor intenso, luz y metal fundido. Además de aislarse, hay que protegerse del arco.',
+  req:[['g00','g0'],['facial'],['ignifuga'],['cascoE'],['botinD']],
+  bad:{sintetica:'La ropa sintética se derrite con el arco y se pega a la piel.',anillos:'Nada de metales encima: reloj y anillos conducen.'},
+  note:{anteojos:'Los anteojos solos no protegen la cara del arco: va protector facial.',g1:'Sobredimensionado: con clase 00 o 0 alcanza.',g2:'Sobredimensionado para 380 V.',g3:'Sobredimensionado para 380 V.',g4:'Sobredimensionado para 380 V.'},
+  tip:'Clase 00: hasta 500 V (beige). Clase 0: hasta 1.000 V (rojo). El color del guante te dice la clase de un vistazo.'},
+ {title:'Cortar un cable en línea aérea',short:'MT · 13,2 kV',scene:'poste',
+  data:[['Tensión','13.200 V CA'],['Nivel','Media tensión'],['Altura','Sí, en poste'],['Modalidad','Con tensión (a contacto)']],
+  q:'¿Quién puede hacer trabajos con tensión en una línea de 13,2 kV?',
+  opts:[['Solo personal capacitado y habilitado para TCT, con procedimiento aprobado',1],['Cualquier electricista matriculado',0],['Cualquiera con buenos guantes',0]],
+  qfb:'En Argentina los trabajos con tensión en instalaciones de más de 1 kV se rigen por la Res. SRT 592/04: personal habilitado, procedimiento escrito y equipo certificado.',
+  req:[['g2','g3','g4'],['cuero'],['cascoE'],['facial'],['ignifuga'],['botinD'],['arnes']],
+  bad:{...lowGloves('g2','en 13,2 kV no protege.'),sintetica:'Se derrite con el arco. Va ropa ignífuga.',anillos:'Nada de metales: conducen.'},
+  note:{g3:'Clase 3 aguanta, pero la clase 2 es la que corresponde a 13,2 kV y da más destreza.',g4:'Clase 4 sobra para 13,2 kV: más gruesa y menos destreza.',anteojos:'En MT va protector facial contra arco.',taburete:'En el poste no se usa taburete: Segu trabaja desde la altura con arnés.'},
+  tip:'Para 13,2 kV: guante clase 2 (hasta 17.000 V, amarillo) siempre con sobreguante de cuero, que lo protege de cortes y pinchaduras. Los guantes se inflan antes de cada uso y se ensayan periódicamente.'},
+ {title:'Maniobrar un seccionador en subestación',short:'MT · 33 kV',scene:'celda',
+  data:[['Tensión','33.000 V CA'],['Nivel','Media tensión'],['Equipo','Seccionador'],['Modalidad','Maniobra a distancia']],
+  q:'¿Cómo opera Segu el seccionador de 33 kV?',
+  opts:[['Con pértiga aislante apta para la tensión, parado sobre taburete aislante',1],['A mano, con guantes clase 4 alcanza',0],['Con una barreta metálica para hacer palanca',0]],
+  qfb:'En MT la maniobra se hace a distancia: la pértiga aleja las manos de las partes con tensión y el taburete aísla a Segu del suelo. Los guantes son una barrera más, no la única.',
+  req:[['pertiga'],['taburete'],['g4'],['cascoE'],['facial'],['ignifuga']],
+  bad:{...lowGloves('g4','en 33 kV no alcanza; corresponde clase 4 (hasta 36 kV).'),sintetica:'Se derrite con el arco.',anillos:'Nada de metales: conducen.'},
+  note:{arnes:'Maniobra a nivel de piso: no hace falta arnés.',botinD:'Bien como barrera extra, aunque el aislamiento principal lo da el taburete.',cuero:'Sobreguante OK como protección mecánica.'},
+  tip:'Pértigas y taburetes también tienen tensión nominal y ensayos periódicos: hay que verificar que sean aptos para la tensión de la instalación y que estén limpios y secos.'},
+ {title:'Trabajo en línea de transmisión',short:'AT · 132 kV',scene:'torre',
+  data:[['Tensión','132.000 V CA'],['Nivel','Alta tensión'],['Altura','Sí, en torre'],['Modalidad','A distancia']],
+  q:'En 132 kV, ¿sirven los guantes aislantes para tocar la línea?',
+  opts:[['No: ningún guante cubre esa tensión. Se trabaja a distancia con pértigas o sin tensión',1],['Sí, con guantes clase 4',0],['Sí, usando dos pares de guantes',0]],
+  qfb:'Los guantes aislantes llegan como máximo a 36 kV (clase 4). En AT la protección viene de la distancia de seguridad y de las herramientas aislantes, nunca del contacto con guantes.',
+  req:[['pertiga'],['cascoE'],['ignifuga'],['arnes'],['botinD']],
+  bad:{sintetica:'Se derrite con el arco.',anillos:'Nada de metales: conducen.'},
+  note:{...Object.fromEntries(GL.map(k=>[k,'No habilita a tocar: en AT el aislamiento lo dan la pértiga y la distancia.'])),taburete:'En la torre no se usa taburete: el trabajo es en altura con arnés.',facial:'Bien como protección extra contra el arco.',detector:'OK: en AT el detector se usa montado en pértiga.'},
+  tip:'Las distancias mínimas de seguridad aumentan con la tensión (tabla del Anexo VI del Dec. 351/79). En AT, acercarse sin tocar ya puede provocar una descarga.'}
+];
+
+/* ===== Segu (dibujo propio, basado en el personaje) ===== */
+function segu(eq={},mood='ok',w=120){
+  const g=[...GL].reverse().find(k=>eq[k]);
+  const hand=g?(eq.cuero?'#a0652e':GLOVES[g][2]):'#2f6fd6';
+  const shirt=eq.ignifuga?'#1d3f73':eq.sintetica?'#e2407a':'#2f6fd6';
+  const mouth=mood==='bad'?'M48 60q8-6 16 0':'M47 56q9 9 18 0';
+  const shoe=eq.botinD?'#b07a3f':'#6b4a2b';
+  return `<svg width="${w}" viewBox="0 0 112 160">
+  <ellipse cx="56" cy="156" rx="32" ry="4" fill="#000" opacity=".4"/>
+  ${eq.taburete?'<rect x="22" y="146" width="68" height="6" fill="#2f2f2f"/><path d="M26 152l-2 6M86 152l2 6" stroke="#f2d21b" stroke-width="3"/>':''}
+  <rect x="38" y="118" width="15" height="26" rx="4" fill="${shirt}" stroke="#000" stroke-width="1.2"/><rect x="59" y="118" width="15" height="26" rx="4" fill="${shirt}" stroke="#000" stroke-width="1.2"/>
+  <path d="M33 138h22v8H31z M57 138h22l2 8H57z" fill="${shoe}" stroke="#000" stroke-width="1.2"/>
+  <rect x="32" y="76" width="48" height="48" rx="12" fill="${shirt}" stroke="#000" stroke-width="1.5"/>
+  <path d="M36 80h14v40H36zM62 80h14v40H62z" fill="#f47b20" stroke="#000" stroke-width="1"/>
+  <path d="M36 100h14M62 100h14M36 108h14M62 108h14" stroke="#e8eef2" stroke-width="3"/>
+  ${eq.arnes?'<path d="M40 78l16 22 16-22M56 100v18M34 118h44" stroke="#F5A623" stroke-width="3.5" fill="none"/>':''}
+  <rect x="17" y="80" width="14" height="32" rx="7" fill="${shirt}" stroke="#000" stroke-width="1.5"/><rect x="81" y="80" width="14" height="32" rx="7" fill="${shirt}" stroke="#000" stroke-width="1.5"/>
+  <circle cx="24" cy="116" r="8.5" fill="${hand}" stroke="#000" stroke-width="1.5"/><circle cx="88" cy="116" r="8.5" fill="${hand}" stroke="#000" stroke-width="1.5"/>
+  ${eq.pertiga?'<path d="M88 122L104 10" stroke="#f2d21b" stroke-width="4" stroke-linecap="round"/><path d="M88 122l3-20" stroke="#d93a32" stroke-width="5"/>':''}
+  ${eq.detector&&!eq.pertiga?'<rect x="84" y="96" width="9" height="16" rx="3" fill="#F5A623" stroke="#000"/>':''}
+  ${eq.anillos?'<rect x="15" y="104" width="18" height="5" fill="#ccc" stroke="#000"/>':''}
+  <circle cx="56" cy="50" r="27" fill="#f6c9a0" stroke="#000" stroke-width="1.5"/>
+  <circle cx="30" cy="52" r="5" fill="#f6c9a0" stroke="#000"/><circle cx="82" cy="52" r="5" fill="#f6c9a0" stroke="#000"/>
+  <path d="M32 40q6-14 24-14t24 14q-6-4-12-4l-4 5-6-5q-12 0-26 4z" fill="#6b3e1f"/>
+  <ellipse cx="46" cy="50" rx="4" ry="5" fill="#fff"/><ellipse cx="66" cy="50" rx="4" ry="5" fill="#fff"/>
+  <circle cx="46.5" cy="51" r="2.6" fill="#3a2414"/><circle cx="66.5" cy="51" r="2.6" fill="#3a2414"/>
+  <circle cx="40" cy="61" r="4" fill="#ff9b9b" opacity=".6"/><circle cx="72" cy="61" r="4" fill="#ff9b9b" opacity=".6"/>
+  <path d="${mouth}" stroke="#5a2a14" stroke-width="2.5" fill="${mood==='bad'?'none':'#fff'}" stroke-linecap="round"/>
+  ${eq.anteojos&&!eq.facial?'<rect x="39" y="44" width="14" height="11" rx="4" fill="#bfe8ff" fill-opacity=".5" stroke="#222" stroke-width="2"/><rect x="59" y="44" width="14" height="11" rx="4" fill="#bfe8ff" fill-opacity=".5" stroke="#222" stroke-width="2"/>':''}
+  <path d="M27 38a29 25 0 0 1 58 0z" fill="#F5C518" stroke="#000" stroke-width="1.5"/>
+  <rect x="22" y="35" width="68" height="7" rx="3.5" fill="#F5C518" stroke="#000" stroke-width="1.5"/>
+  <path d="M50 18h12v8q0 6-6 8-6-2-6-8z" fill="#2f6fd6" stroke="#000" stroke-width="1"/><text x="56" y="28" font-family="Oswald" font-size="7" text-anchor="middle" fill="#F5C518">PL</text>
+  ${eq.facial?'<path d="M30 42h52v20c0 12-12 18-26 18s-26-6-26-18z" fill="#7fd0ff" fill-opacity=".35" stroke="#1d5a7a" stroke-width="1.5"/>':''}
+  ${mood==='bad'?'<path class="spark" d="M96 22l-8 12h8l-6 12" stroke="#F5A623" stroke-width="3" fill="none"/>':''}
+  </svg>`;
+}
+const SCENES={
+ casa:`<svg width="200" viewBox="0 0 200 110"><rect x="10" y="10" width="180" height="95" rx="8" fill="#2a3038"/><rect x="80" y="28" width="40" height="56" rx="6" fill="#eee" stroke="#000"/><rect x="92" y="42" width="5" height="12" rx="2" fill="#333"/><rect x="103" y="42" width="5" height="12" rx="2" fill="#333"/><circle cx="100" cy="66" r="4" fill="#333"/><text x="100" y="100" fill="#F5A623" font-family="Oswald" font-size="12" text-anchor="middle">220 V</text></svg>`,
+ tablero:`<svg width="200" viewBox="0 0 200 110"><rect x="50" y="6" width="100" height="100" rx="6" fill="#8c96a0" stroke="#000"/><rect x="58" y="14" width="84" height="84" fill="#20252b"/><g fill="#ddd"><rect x="66" y="24" width="12" height="26" rx="2"/><rect x="84" y="24" width="12" height="26" rx="2"/><rect x="102" y="24" width="12" height="26" rx="2"/><rect x="120" y="24" width="12" height="26" rx="2"/></g><path d="M66 70h70M66 80h70" stroke="#d93a32" stroke-width="3"/><path d="M164 18l12 6-12 6 12 6" stroke="#F5A623" stroke-width="3" fill="none" class="spark"/><text x="100" y="104" fill="#101215" font-family="Oswald" font-size="11" text-anchor="middle">380 V</text></svg>`,
+ poste:`<svg width="200" viewBox="0 0 200 120"><rect x="94" y="10" width="12" height="110" fill="#9b7a55"/><rect x="40" y="22" width="120" height="8" fill="#6b5236"/><g fill="#9cd"><rect x="48" y="12" width="8" height="12" rx="2"/><rect x="96" y="12" width="8" height="12" rx="2"/><rect x="144" y="12" width="8" height="12" rx="2"/></g><path d="M0 14q52 10 52-2M52 12q48 10 48 0M100 12q48 10 48 0M148 12q30 8 52 4" stroke="#222" stroke-width="2" fill="none"/><path d="M178 40l-8 12h8l-6 12" stroke="#F5A623" stroke-width="3" fill="none" class="spark"/><polygon points="70,60 90,95 50,95" fill="#F5A623" stroke="#000"/><text x="70" y="90" font-family="Oswald" font-size="18" text-anchor="middle" fill="#101215">!</text><text x="140" y="96" fill="#F5A623" font-family="Oswald" font-size="13" text-anchor="middle">13,2 kV</text></svg>`,
+ celda:`<svg width="200" viewBox="0 0 200 120"><rect x="20" y="100" width="160" height="6" fill="#555"/><g stroke="#ccc" stroke-width="4"><path d="M60 100V40M100 100V40M140 100V40"/></g><g fill="#9cd"><rect x="54" y="30" width="12" height="18" rx="3"/><rect x="94" y="30" width="12" height="18" rx="3"/><rect x="134" y="30" width="12" height="18" rx="3"/></g><path d="M60 30l20-14M100 30l20-14M140 30l20-14" stroke="#ddd" stroke-width="4"/><path d="M10 20h190" stroke="#222" stroke-width="2"/><path d="M30 60l-6 10h6l-5 10" stroke="#F5A623" stroke-width="3" fill="none" class="spark"/><text x="100" y="118" fill="#F5A623" font-family="Oswald" font-size="13" text-anchor="middle">33 kV · Seccionador</text></svg>`,
+ torre:`<svg width="200" viewBox="0 0 200 125"><path d="M80 120L95 10h10l15 110M84 90h32M88 60h24M91 35h18M84 90l28-30M116 90L88 60M88 60l21-25M112 60L91 35" stroke="#9aa3ad" stroke-width="3" fill="none"/><path d="M50 20h100M60 45h80" stroke="#9aa3ad" stroke-width="4"/><g stroke="#9cd" stroke-width="4"><path d="M55 20v14M145 20v14M65 45v14M135 45v14"/></g><path d="M0 36q55 8 55-2M145 34q30 8 55 0M0 61q65 8 65-2M135 59q30 8 65 0" stroke="#222" stroke-width="2" fill="none"/><path d="M172 80l-8 12h8l-6 12" stroke="#F5A623" stroke-width="3" fill="none" class="spark"/><text x="40" y="112" fill="#F5A623" font-family="Oswald" font-size="13" text-anchor="middle">132 kV</text></svg>`
+};
+
+/* ===== Estado y lógica ===== */
+const $=id=>document.getElementById(id);
+let S={pts:0,lives:3},timer;
+const RK='prevenlab_segu_tension_rec';
+const getRec=()=>{try{return +localStorage.getItem(RK)||0}catch(e){return 0}};
+const setRec=v=>{try{localStorage.setItem(RK,v)}catch(e){}};
+const shuffle=a=>a.map(x=>[Math.random(),x]).sort((p,q)=>p[0]-q[0]).map(x=>x[1]);
+function hud(){$('pts').textContent=S.pts;$('rec').textContent=Math.max(getRec(),S.pts);$('lives').innerHTML=[0,1,2].map(i=>`<span style="opacity:${i<S.lives?1:.2}">⚡</span>`).join('')}
+function show(id){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('on'));$(id).classList.add('on');$(id).scrollTop=0}
+function toast(t){const e=$('toast');e.textContent=t;e.style.display='block';clearTimeout(e._t);e._t=setTimeout(()=>e.style.display='none',2600)}
+function start(){S={lvl:0,pts:0,lives:3,eq:{},done:0};hud();level()}
+function level(){
+  const L=LEVELS[S.lvl];S.eq={};
+  $('dLevel').textContent=`TAREA ${S.lvl+1}/${LEVELS.length} · ${L.short}`;$('dTitle').textContent=L.title;
+  $('dScene').innerHTML=SCENES[L.scene];
+  $('dData').innerHTML=L.data.map(([k,v])=>`<div><small>${k}</small><strong>${v}</strong></div>`).join('');
+  show('sData');
+}
+function question(){
+  const L=LEVELS[S.lvl];$('qText').textContent=L.q;$('qFb').style.display='none';$('bQ').style.display='none';
+  const opts=shuffle(L.opts);let answered=false;$('qOpts').innerHTML='';
+  opts.forEach(([t,ok])=>{const b=document.createElement('button');b.className='opt';b.textContent=t;
+    b.onclick=()=>{if(answered)return;answered=true;
+      [...$('qOpts').children].forEach((c,i)=>{if(opts[i][1])c.classList.add('ok')});
+      if(ok){S.pts+=50;$('qFb').innerHTML='<b style="color:var(--ok)">¡Correcto! +50</b><br>'+L.qfb}
+      else{b.classList.add('bad','shake');S.lives--;$('qFb').innerHTML='<b style="color:var(--bad)">Incorrecto · −1 vida</b><br>'+L.qfb}
+      hud();$('qFb').style.display='block';$('bQ').style.display='block';$('bQ').textContent=S.lives<=0?'Ver resultado':'Elegir equipo'};
+    $('qOpts').appendChild(b)});
+  show('sQ');
+}
+function epp(){
+  if(S.lives<=0)return end(false);
+  const L=LEVELS[S.lvl];$('eTag').textContent=`TAREA ${S.lvl+1} · ${L.short}`;$('eTitle').textContent=L.title;
+  const keys=[...GL,...shuffle(Object.keys(ITEMS).filter(k=>!GL.includes(k)))];
+  $('grid').innerHTML=keys.map(k=>`<div class="item${S.eq[k]?' sel':''}" data-k="${k}">${ICON[k]}<p>${ITEMS[k]}</p></div>`).join('');
+  [...$('grid').children].forEach(el=>el.onclick=()=>{const k=el.dataset.k;S.eq[k]=!S.eq[k];el.classList.toggle('sel');$('seguLive').innerHTML=segu(S.eq,'ok',78)});
+  $('seguLive').innerHTML=segu(S.eq,'ok',78);
+  S.t=T;tick();clearInterval(timer);timer=setInterval(()=>{S.t--;tick();if(S.t<=0){clearInterval(timer);check(true)}},1000);
+  show('sEpp');
+}
+function tick(){$('tLeft').textContent=S.t;$('tBar').style.width=(S.t/T*100)+'%';$('tBar').style.background=S.t<10?'var(--bad)':'var(--a)'}
+function check(timeout){
+  clearInterval(timer);const L=LEVELS[S.lvl],eq=S.eq,out=[];let fail=!!timeout;
+  if(timeout)out.push('<li>⏱️ <b>Se terminó el tiempo.</b></li>');
+  L.req.forEach(alt=>{if(!alt.some(k=>eq[k])){fail=true;out.push(`<li>❌ Faltó: <b>${alt.map(k=>ITEMS[k]).join(' o ')}</b></li>`)}});
+  Object.keys(eq).filter(k=>eq[k]).forEach(k=>{
+    if(L.bad[k]){fail=true;out.push(`<li>⚠️ <b>${ITEMS[k]}</b>: ${L.bad[k]}</li>`)}
+    else if(L.note[k])out.push(`<li>💡 <b>${ITEMS[k]}</b>: ${L.note[k]}</li>`)
+    else if(L.req.some(a=>a.includes(k)))out.push(`<li>✅ ${ITEMS[k]}</li>`)});
+  let gained=0;if(!fail){gained=100+S.t*3;S.pts+=gained;S.done++}else S.lives--;
+  hud();S.fail=fail;
+  $('fTitle').textContent=fail?'¡Zap! Así no':'¡Bien equipado!';$('fTitle').style.color=fail?'var(--bad)':'var(--ok)';
+  $('fHero').innerHTML=segu(eq,fail?'bad':'ok',110);
+  $('fList').innerHTML=(fail?'':`<li><b style="color:var(--a)">+${gained} puntos</b> (incluye bonus por tiempo)</li>`)+out.join('');
+  $('fTip').innerHTML='<b style="color:var(--a)">DATO:</b> '+L.tip;
+  $('bFb').textContent=S.lives<=0?'Ver resultado':fail?'Reintentar':(S.lvl<LEVELS.length-1?'Siguiente tarea':'Terminar');
+  if(fail){$('fHero').classList.add('shake');setTimeout(()=>$('fHero').classList.remove('shake'),500)}
+  show('sFb');
+}
+function next(){if(S.lives<=0)return end(false);if(S.fail)return epp();S.lvl++;if(S.lvl>=LEVELS.length)return end(true);level()}
+function end(win){
+  clearInterval(timer);const r=getRec();S.newRec=S.pts>r;if(S.newRec)setRec(S.pts);hud();S.win=win;
+  $('eEnd').textContent=win?'¡Misión cumplida!':'Sin vidas';
+  $('endHero').innerHTML=segu(win?{cascoE:1,facial:1,g2:1,cuero:1,ignifuga:1,botinD:1,arnes:1}:{},win?'ok':'bad',120);
+  $('endPts').textContent=S.pts;$('endRec').textContent=S.newRec?'🏆 ¡Nuevo récord!':`Récord: ${Math.max(r,S.pts)}`;
+  show('sEnd');
+}
+
+/* ===== Compartir: imagen 1080x1920 para historias ===== */
+function svgImg(svg){return new Promise(res=>{const i=new Image();i.onload=()=>res(i);i.onerror=()=>res(null);i.src='data:image/svg+xml;charset=utf-8,'+encodeURIComponent(svg.replace('<svg','<svg xmlns="http://www.w3.org/2000/svg"'))})}
+async function makeCard(){
+  try{await document.fonts.ready}catch(e){}
+  const c=document.createElement('canvas');c.width=1080;c.height=1920;const x=c.getContext('2d');
+  x.fillStyle='#101215';x.fillRect(0,0,1080,1920);
+  for(let i=-2;i<40;i++){x.fillStyle=i%2?'#F5A623':'#101215';x.beginPath();x.moveTo(i*60,0);x.lineTo(i*60+60,0);x.lineTo(i*60+20,40);x.lineTo(i*60-40,40);x.fill();x.beginPath();x.moveTo(i*60,1880);x.lineTo(i*60+60,1880);x.lineTo(i*60+20,1920);x.lineTo(i*60-40,1920);x.fill()}
+  x.textAlign='center';x.fillStyle='#F5A623';x.font='700 110px Oswald, Impact, sans-serif';
+  x.fillText('SEGU Y LA',540,220);x.fillText('TENSIÓN',540,340);
+  const img=await svgImg(segu(S.win?{cascoE:1,facial:1,g2:1,cuero:1,ignifuga:1,botinD:1,arnes:1}:{cascoE:1},S.win?'ok':'bad',440));
+  if(img)x.drawImage(img,320,400,440,629);
+  x.fillStyle='#9aa3ad';x.font='600 48px Barlow, sans-serif';x.fillText('MI PUNTAJE',540,1130);
+  x.fillStyle='#F5A623';x.font='700 220px Oswald, Impact, sans-serif';x.fillText(S.pts,540,1340);
+  x.fillStyle='#f3f1ec';x.font='600 44px Barlow, sans-serif';
+  x.fillText(`Tareas superadas: ${S.done}/${LEVELS.length}${S.newRec?'  ·  ¡Nuevo récord!':''}`,540,1430);
+  x.fillText('¿Sabés qué EPP usar de 220 V a 132 kV?',540,1530);
+  x.fillStyle='#F5A623';x.font='700 64px Oswald, sans-serif';x.fillText(IG,540,1680);
+  x.fillStyle='#9aa3ad';x.font='400 34px Barlow, sans-serif';x.fillText('PrevenLab Academy · Jugá en el link de la bio',540,1760);
+  return new Promise(r=>c.toBlob(r,'image/png'));
+}
+async function share(){
+  const text=`¡Hice ${S.pts} puntos en "Segu y la Tensión" de ${IG}! ⚡ ¿Sabés qué EPP usar para trabajar con riesgo eléctrico? Jugá acá: ${GAME_URL}`;
+  let blob=null;try{blob=await makeCard()}catch(e){}
+  const file=blob&&new File([blob],'puntaje-segu-tension.png',{type:'image/png'});
+  try{if(file&&navigator.canShare&&navigator.canShare({files:[file]})){await navigator.share({files:[file],text,title:'Segu y la Tensión'});return}}catch(e){if(e.name==='AbortError')return}
+  try{await navigator.clipboard.writeText(text)}catch(e){}
+  if(blob){const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='puntaje-segu-tension.png';a.click()}
+  toast(`Imagen descargada y texto copiado. Subila a tu historia y etiquetá a ${IG}`);
+}
+
+$('heroStart').innerHTML=segu({cascoE:1,g2:1,ignifuga:1,botinD:1},'ok',130);
+$('bPlay').onclick=start;$('bData').onclick=question;$('bQ').onclick=epp;$('bCheck').onclick=()=>check(false);$('bFb').onclick=next;$('bAgain').onclick=start;$('bShare').onclick=share;
+hud();
+</script>
+</body>
+</html>
