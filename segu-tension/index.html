@@ -61,7 +61,7 @@ h1,h2,h3{font-family:Oswald,Impact,sans-serif;text-transform:uppercase;letter-sp
 </head>
 <body>
 <div id="app">
-  <div class="hud"><div>PUNTOS <b id="pts">0</b></div><div id="lives"></div><div>RÉCORD <b id="rec">0</b></div></div>
+  <div class="hud"><div>PUNTOS <b id="pts">0</b></div><div id="lives"></div><div>RÉCORD <b id="rec">0</b> <button id="bFs" aria-label="Pantalla completa" style="margin-left:6px;background:var(--g3);color:var(--a);border:0;border-radius:6px;font-size:15px;padding:2px 7px;cursor:pointer">⛶</button></div></div>
 
   <section class="screen on" id="sStart">
     <div class="danger"></div>
@@ -347,6 +347,15 @@ async function share(){
 
 $('heroStart').innerHTML=segu({cascoE:1,g2:1,ignifuga:1,botinD:1},'ok',130);
 $('bPlay').onclick=start;$('bData').onclick=question;$('bQ').onclick=epp;$('bCheck').onclick=()=>check(false);$('bFb').onclick=next;$('bAgain').onclick=start;$('bShare').onclick=share;
+const inFrame=(()=>{try{return window.self!==window.top}catch(e){return true}})();
+$('bFs').onclick=async()=>{
+  const el=document.documentElement,fs=document.fullscreenElement||document.webkitFullscreenElement;
+  if(fs){(document.exitFullscreen||document.webkitExitFullscreen).call(document);return}
+  const req=el.requestFullscreen||el.webkitRequestFullscreen;
+  if(req){try{await req.call(el);return}catch(e){}}
+  if(inFrame){window.open(GAME_URL,'_blank');return}
+  toast('Tu celular no permite pantalla completa: agregá la página a la pantalla de inicio');
+};
 hud();
 </script>
 </body>
