@@ -1,0 +1,4 @@
+Nunito (latin, variable 600-900) - Copyright The Nunito Project Authors.
+Licencia: SIL Open Font License 1.1 (https://openfontlicense.org). Uso libre, incluso comercial.
+Origen: Google Fonts (fonts.google.com/specimen/Nunito). Alojada aqui para que los juegos kids
+no hagan pedidos a servidores externos.
