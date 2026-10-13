@@ -24,14 +24,14 @@ def wrap(draw, text, font, maxw):
     lines.append(cur)
     return lines
 
-def card(path, bg, fg, accent, tag, title, sub, badge):
+def card(path, bg, fg, accent, tag, title, sub, badge, mascot=None):
     W, H = 1200, 630
     im = Image.new("RGB", (W, H), bg)
     d = ImageDraw.Draw(im)
     # franja de peligro arriba
     for x in range(-40, W + 40, 60):
         d.polygon([(x, 0), (x + 30, 0), (x + 10, 26), (x - 20, 26)], fill=accent)
-    s = segu_img(470)
+    s = mascot if mascot is not None else segu_img(470)
     im.paste(s, (W - s.width - 30, H - s.height - 10), s)
     f_tag = ImageFont.truetype(BOLD, 30)
     f_title = ImageFont.truetype(IMPACT, 80)
@@ -43,7 +43,7 @@ def card(path, bg, fg, accent, tag, title, sub, badge):
     for line in wrap(d, title.upper(), f_title, 640):
         d.text((x, y), line, font=f_title, fill=fg); y += 90
     y += 14
-    for line in wrap(d, sub, f_sub, 680):
+    for line in wrap(d, sub, f_sub, 620):
         d.text((x, y), line, font=f_sub, fill=fg); y += 46
     bw = d.textlength(badge, font=f_badge) + 56
     d.rounded_rectangle((x, H - 100, x + bw, H - 40), radius=30, fill=accent)
@@ -54,9 +54,11 @@ def card(path, bg, fg, accent, tag, title, sub, badge):
 card(os.path.join(ROOT, "segu-tension", "og.jpg"), "#101215", "#f3f1ec", "#F5A623",
      "SEGU Adultos · PrevenLab Academy", "¿Sabés qué EPP usar con tensión?",
      "De 220 V a 132 kV: elegí guantes, pértiga y taburete correctos.", "Jugá gratis")
+KIDS_SRC = os.path.join(ROOT, "assets", "segu-kids.webp")
+kids = Image.open(KIDS_SRC).convert("RGBA").resize((470, 470), Image.LANCZOS)
 card(os.path.join(ROOT, "segu-kids", "og.jpg"), "#FFC400", "#1f2a37", "#1f2a37",
      "SEGU Kids · PrevenLab Academy", "Detective de peligros",
-     "¡Encontrá los peligros escondidos en la cocina, el patio y la escuela!", "Jugá gratis")
+     "¡Encontrá los peligros escondidos en la cocina, el patio y la escuela!", "Jugá gratis", kids)
 card(os.path.join(ROOT, "og.jpg"), "#101215", "#f3f1ec", "#F5A623",
      "PrevenLab Academy", "SEGU: juegos de seguridad",
      "Adultos y Kids. Aprendé jugando a prevenir.", "Jugá gratis")
